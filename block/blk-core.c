@@ -2078,6 +2078,16 @@ out:
 }
 EXPORT_SYMBOL(generic_make_request);
 
+
+void generic_complete_bio(struct request_queue *q, struct bio *bio, int error)
+{
+
+	trace_block_bio_complete(q, bio, error);
+
+}
+EXPORT_SYMBOL(generic_complete_bio);
+
+
 /**
  * submit_bio - submit a bio to the block device layer for I/O
  * @bio: The &struct bio which describes the I/O

@@ -172,6 +172,9 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
 		nvdimm_flush(nd_region);
 
 	bio_endio(bio);
+
+	generic_complete_bio(q, bio, rc);	
+
 	return BLK_QC_T_NONE;
 }
 
