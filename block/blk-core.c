@@ -2079,7 +2079,7 @@ out:
 EXPORT_SYMBOL(generic_make_request);
 
 
-void generic_complete_bio(struct request_queue *q, strut bio *bio, int error)
+void generic_complete_bio(struct request_queue *q, struct bio *bio, int error)
 {
 
 	trace_block_bio_complete(q, bio, error);
