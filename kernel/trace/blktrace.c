@@ -779,6 +779,19 @@ static void blk_add_trace_bio(struct request_queue *q, struct bio *bio,
 			bio_op(bio), bio->bi_opf, what, error, 0, NULL);
 }
 
+
+static void blk_add_trace_pmem(struct request_queue *q, struct block_device *bdev, struct blk_dax_ctl *dax,
+			      u32 what, int error)
+{
+	struct blk_trace *bt = q->blk_trace;
+
+	if (likely(!bt))
+		return;
+
+	__blk_add_trace(bt, 0, 0, 0, 0, BLK_TA_QUEUE, 0, 0, NULL);
+}
+
+
 static void blk_add_trace_bio_bounce(void *ignore,
 				     struct request_queue *q, struct bio *bio)
 {
@@ -812,6 +825,18 @@ static void blk_add_trace_bio_queue(void *ignore,
 				    struct request_queue *q, struct bio *bio)
 {
 	blk_add_trace_bio(q, bio, BLK_TA_QUEUE, 0);
+}
+
+static void blk_add_trace_pmem_write_queue(void *ignore,
+				    struct request_queue *q, struct block_device *bdev, struct blk_dax_ctl *dax)
+{
+	blk_add_trace_pmem(q, bdev, dax, BLK_TA_QUEUE, 0);
+}
+
+static void blk_add_trace_pmem_write_complete(void *ignore,
+				    struct request_queue *q, struct block_device *bdev, struct blk_dax_ctl *dax)
+{
+	blk_add_trace_pmem(q, bdev, dax, BLK_TA_COMPLETE, 0);
 }
 
 static void blk_add_trace_getrq(void *ignore,
@@ -1003,6 +1028,14 @@ static void blk_register_tracepoints(void)
 	WARN_ON(ret);
 	ret = register_trace_block_bio_frontmerge(blk_add_trace_bio_frontmerge, NULL);
 	WARN_ON(ret);
+
+	ret = register_trace_pmem_write_queue(blk_add_trace_pmem_write_queue, NULL);
+	WARN_ON(ret);
+	
+	ret = register_trace_pmem_write_complete(blk_add_trace_pmem_write_complete, NULL);
+	WARN_ON(ret);
+
+
 	ret = register_trace_block_bio_queue(blk_add_trace_bio_queue, NULL);
 	WARN_ON(ret);
 	ret = register_trace_block_getrq(blk_add_trace_getrq, NULL);
@@ -1040,6 +1073,9 @@ static void blk_unregister_tracepoints(void)
 	unregister_trace_block_rq_issue(blk_add_trace_rq_issue, NULL);
 	unregister_trace_block_rq_insert(blk_add_trace_rq_insert, NULL);
 	unregister_trace_block_rq_abort(blk_add_trace_rq_abort, NULL);
+
+	unregister_trace_pmem_write_queue(blk_add_trace_pmem_write_queue, NULL);
+	unregister_trace_pmem_write_complete(blk_add_trace_pmem_write_complete, NULL);
 
 	tracepoint_synchronize_unregister();
 }

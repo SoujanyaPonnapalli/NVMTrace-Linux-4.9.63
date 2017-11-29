@@ -384,6 +384,65 @@ DEFINE_EVENT(block_bio_merge, block_bio_frontmerge,
 	TP_ARGS(q, rq, bio)
 );
 
+
+/* [RSKP] NVMTrace */
+
+TRACE_EVENT(pmem_write_queue,
+
+	TP_PROTO(struct request_queue *q, struct block_device *bdev, struct blk_dax_ctl *dax),
+
+	    TP_ARGS(q, bdev, dax),
+
+	TP_STRUCT__entry(
+		__field( dev_t,		    dev			)
+		__field( sector_t,	    sector		)
+		__field( void*,	addr		)
+		__field( long,	        size		)
+	),
+
+	TP_fast_assign(
+		__entry->dev		= bdev->bd_dev;
+		__entry->sector		= dax->sector;
+		__entry->addr		= dax->addr;
+		__entry->size		= dax->size;
+	),
+
+	TP_printk("TEST: %d,%d %llu %lu %ld",
+		  MAJOR(__entry->dev), MINOR(__entry->dev),
+		  (unsigned long long)__entry->sector,
+		  (unsigned long) __entry->addr,
+		  (long) __entry->size
+	)
+);
+
+TRACE_EVENT(pmem_write_complete,
+
+	TP_PROTO(struct request_queue *q, struct block_device *bdev, struct blk_dax_ctl *dax),
+
+	    TP_ARGS(q, bdev, dax),
+
+	TP_STRUCT__entry(
+		__field( dev_t,		    dev			)
+		__field( sector_t,	    sector		)
+		__field( void*,	addr		)
+		__field( long,	        size		)
+	),
+
+	TP_fast_assign(
+		__entry->dev		= bdev->bd_dev;
+		__entry->sector		= dax->sector;
+		__entry->addr		= dax->addr;
+		__entry->size		= dax->size;
+	),
+
+	TP_printk("TEST: %d,%d %llu %lu %ld",
+		  MAJOR(__entry->dev), MINOR(__entry->dev),
+		  (unsigned long long)__entry->sector,
+		  (unsigned long) __entry->addr,
+		  (long) __entry->size
+	)
+);
+
 /**
  * block_bio_queue - putting new block IO operation in queue
  * @q: queue holding operation
@@ -391,6 +450,10 @@ DEFINE_EVENT(block_bio_merge, block_bio_frontmerge,
  *
  * About to place the block IO operation @bio into queue @q.
  */
+
+
+
+
 TRACE_EVENT(block_bio_queue,
 
 	TP_PROTO(struct request_queue *q, struct bio *bio),

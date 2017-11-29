@@ -34,6 +34,13 @@
 #include <linux/iomap.h>
 #include "internal.h"
 
+#define CREATE_TRACE_POINTS
+#include <trace/events/block.h>
+
+EXPORT_TRACEPOINT_SYMBOL_GPL(pmem_write_queue);
+EXPORT_TRACEPOINT_SYMBOL_GPL(pmem_write_complete);
+
+
 /*
  * We use lowest available bit in exceptional entry for locking, other two
  * bits to determine entry type. In total 3 special bits.
@@ -677,7 +684,8 @@ static int dax_writeback_one(struct block_device *bdev,
 	struct blk_dax_ctl dax;
 	void **slot;
 	int ret = 0;
-
+	struct request_queue *q;
+	
 	spin_lock_irq(&mapping->tree_lock);
 	/*
 	 * Regular page slots are stabilized by the page lock even
@@ -710,12 +718,17 @@ static int dax_writeback_one(struct block_device *bdev,
 	if (ret < 0)
 		return ret;
 
+	q = bdev_get_queue(bdev);
+	trace_pmem_write_queue(q, bdev, &dax);
+
 	if (WARN_ON_ONCE(ret < dax.size)) {
 		ret = -EIO;
 		goto unmap;
 	}
 
 	wb_cache_pmem(dax.addr, dax.size);
+
+	trace_pmem_write_complete(q, bdev, &dax);
 
 	spin_lock_irq(&mapping->tree_lock);
 	radix_tree_tag_clear(page_tree, index, PAGECACHE_TAG_TOWRITE);

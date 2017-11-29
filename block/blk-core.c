@@ -34,7 +34,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/blk-cgroup.h>
 
-#define CREATE_TRACE_POINTS
+// #define CREATE_TRACE_POINTS
 #include <trace/events/block.h>
 
 #include "blk.h"
@@ -45,6 +45,7 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(block_rq_remap);
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_bio_complete);
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_split);
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_unplug);
+
 
 DEFINE_IDA(blk_queue_ida);
 
@@ -1967,6 +1968,15 @@ end_io:
 	bio_endio(bio);
 	return false;
 }
+
+// void generic_pmem_make_request(struct request_queue *q, struct block_device *bdev, struct blk_dax_ctl *dax, bool type) {
+// 	if(!type)
+// 		trace_pmem_write_queue(q, bdev, &dax);
+// 	else
+// 		trace_pmem_write_complete(q, bdev, &dax);
+
+// }
+
 
 /**
  * generic_make_request - hand a buffer to its device driver for I/O
